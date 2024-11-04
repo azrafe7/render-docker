@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Screenshot Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, .3);
+            border-radius: 50%;
+            border-top-color: #000;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #status {
+            display: none;
+        }
+
+        .screenshot-container img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">Website Screenshot Tool</h1>
+        
+        <form id="screenshotForm" class="mb-4">
+            <div class="mb-3">
+                <label for="url" class="form-label">Enter Website URL:</label>
+                <input type="url" class="form-control" id="url" name="url" required placeholder="https://example.com">
+            </div>
+
+            <div class="mb-3">
+                <label for="device" class="form-label">Device/Viewport:</label>
+                <select class="form-select" id="device" name="device">
+                    <option value="Desktop">Desktop (1920×1080)</option>
+                    <option value="MacBook Pro 16">MacBook Pro 16" (1728×1117)</option>
+                    <option value="MacBook Air">MacBook Air (1280×832)</option>
+                    <option value="iMac">iMac 24" (2048×1152)</option>
+                    <option value="iPad Pro">iPad Pro (1024×1366)</option>
+                    <option value="iPad Air">iPad Air (820×1180)</option>
+                    <option value="iPad Mini">iPad Mini (768×1024)</option>
+                    <option value="iPad">iPad (810×1080)</option>
+                    <option value="iPhone 15 Pro Max">iPhone 15 Pro Max (430×932)</option>
+                    <option value="iPhone 15 Pro">iPhone 15 Pro (393×852)</option>
+                    <option value="iPhone 15">iPhone 15 (393×852)</option>
+                    <option value="iPhone 14 Pro Max">iPhone 14 Pro Max (430×932)</option>
+                    <option value="iPhone 14">iPhone 14 (390×844)</option>
+                    <option value="iPhone 13 Pro Max">iPhone 13 Pro Max (428×926)</option>
+                    <option value="iPhone 13">iPhone 13 (390×844)</option>
+                    <option value="iPhone SE">iPhone SE (375×667)</option>
+                    <option value="Pixel 8 Pro">Pixel 8 Pro (411×915)</option>
+                    <option value="Pixel 8">Pixel 8 (411×891)</option>
+                    <option value="Pixel 7 Pro">Pixel 7 Pro (412×892)</option>
+                    <option value="Pixel 7">Pixel 7 (411×879)</option>
+                    <option value="Pixel 5">Pixel 5 (393×851)</option>
+                    <option value="Samsung S24 Ultra">Samsung S24 Ultra (412×912)</option>
+                    <option value="Samsung S24+">Samsung S24+ (412×912)</option>
+                    <option value="Samsung S23">Samsung S23 (360×780)</option>
+                    <option value="Samsung Galaxy S8+">Samsung Galaxy S8+ (360×740)</option>
+                    <option value="Galaxy Z Fold5">Galaxy Z Fold5 (280×653)</option>
+                    <option value="Galaxy Tab S9">Galaxy Tab S9 (810×1080)</option>
+                    <option value="Surface Pro 9">Surface Pro 9 (912×1368)</option>
+                    <option value="Nest Hub Max">Nest Hub Max (1280×800)</option>
+                    <option value="Nest Hub">Nest Hub (1024×600)</option>
+                    <option value="custom">Custom Size</option>
+                </select>
+            </div>
+
+            <div id="customSize" class="mb-3 row" style="display: none;">
+                <div class="col">
+                    <label for="customWidth" class="form-label">Width (px):</label>
+                    <input type="number" class="form-control" id="customWidth" min="100" max="3840">
+                </div>
+                <div class="col">
+                    <label for="customHeight" class="form-label">Height (px):</label>
+                    <input type="number" class="form-control" id="customHeight" min="100" max="2160">
+                </div>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="fullpage" name="fullpage">
+                <label class="form-check-label" for="fullpage">Capture Full Page</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                Take Screenshot
+                <span class="loading" style="display: none;"></span>
+            </button>
+        </form>
+
+        <div id="status" class="alert alert-info">
+            Taking screenshot... <span class="loading"></span>
+        </div>
+
+        <div class="screenshot-container">
+            <h3>Screenshot Preview:</h3>
+            <img id="screenshot" style="display: none;">
+            <a href="#" id="downloadBtn" class="btn btn-success mt-3" download="screenshot.png" style="display: none;">
+                Download Screenshot
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('device').addEventListener('change', function() {
+            const customSizeDiv = document.getElementById('customSize');
+            customSizeDiv.style.display = this.value === 'custom' ? 'flex' : 'none';
+        });
+
+        document.getElementById('screenshotForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('url', document.getElementById('url').value);
+            formData.append('device', document.getElementById('device').value);
+            formData.append('fullpage', document.getElementById('fullpage').checked);
+
+            // Only append custom dimensions if custom device is selected
+            if (document.getElementById('device').value === 'custom') {
+                formData.append('custom_width', document.getElementById('customWidth').value);
+                formData.append('custom_height', document.getElementById('customHeight').value);
+            }
+            
+            const status = document.getElementById('status');
+            const screenshot = document.getElementById('screenshot');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const loading = document.querySelector('button .loading');
+            
+            status.style.display = 'block';
+            status.classList.remove('alert-danger');
+            status.classList.add('alert-info');
+            status.textContent = 'Taking screenshot...';
+            const loadingSpan = document.createElement('span');
+            loadingSpan.className = 'loading';
+            status.appendChild(loadingSpan);
+            
+            loading.style.display = 'inline-block';
+            screenshot.style.display = 'none';
+            downloadBtn.style.display = 'none';
+            
+            try {
+                const response = await fetch('/screenshot', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(await response.text());
+                }
+                
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                
+                screenshot.src = url;
+                screenshot.style.display = 'block';
+                
+                downloadBtn.href = url;
+                downloadBtn.style.display = 'inline-block';
+                
+                status.style.display = 'none';
+            } catch (error) {
+                status.textContent = 'Error: ' + error.message;
+                status.classList.remove('alert-info');
+                status.classList.add('alert-danger');
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

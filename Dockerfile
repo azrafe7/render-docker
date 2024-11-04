@@ -25,8 +25,11 @@ RUN pip3 install -r requirements.txt && \
 
 COPY script.py .
 
+COPY main.py .
+COPY static/ ./static
+
 #ENV DISPLAY=:99
 #
-#CMD Xvfb :99 -screen 0 1024x768x16 & python3 script.py
+#CMD Xvfb :99 -screen 0 1024x768x16 & python3 main.py
 
 CMD python3 script.py
