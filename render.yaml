@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: render-docker
+    runtime: docker
+    repo: https://github.com/azrafe7/render-docker
+    plan: free
+    autoDeploy: false
